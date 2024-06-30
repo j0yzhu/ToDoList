@@ -1,37 +1,45 @@
 from flask import Flask, render_template, url_for, redirect, request
 
-app = Flask(__name__, template_folder='templates')
+class ToDoListApp():
+    def __init__(self):
+        self.app = Flask(__name__)
+        self.toDo = [{"task": "code", "done": False}]
+        self.routes()
 
-toDo = [{"task": "do some coding", "done": False}]
+    def routes(self):
+        self.app.add_url_rule('/', 'home', self.home)
+        self.app.add_url_rule('/add', 'add', self.add, methods=['POST'])
+        self.app.add_url_rule('/edit/<int:index>', 'edit', self.edit, methods=['GET', 'POST'])
+        self.app.add_url_rule('/check/<int:index>', 'done', self.done)
+        self.app.add_url_rule('/remove/<int:index>', 'remove', self.remove)
 
-@app.route('/')
-def home():
-    return render_template("home.html", toDo=toDo)
+    def home(self):
+        return render_template("home.html", toDo=self.toDo)
 
-@app.route("/add", methods=["POST"])
-def add():
-    todo = request.form['todo']
-    toDo.append({"task": todo, "done": False})
-    return redirect(url_for('home'))
-
-@app.route("/done/<int:index>", methods=["GET", "POST"])
-def edit(index):
-    todo = toDo[index]
-    if request.method == "POST":
-        todo["task"] = request.form["todo"]
+    def add(self):
+        todo = request.form['todo']
+        self.toDo.append({"task": todo, "done": False})
         return redirect(url_for('home'))
-    else:
-        return render_template('edit.html', todo=todo, index=index)
 
-@app.route("/check/<int:index>")
-def done(index):
-    toDo[index]['done'] = not toDo[index]['done']
-    return redirect(url_for('home'))
+    def edit(self, index):
+        todo = self.toDo[index]
+        if request.method == "POST":
+            todo["task"] = request.form["todo"]
+            return redirect(url_for('home'))
+        else:
+            return render_template('edit.html', todo=self.todo, index=index)
 
-@app.route("/remove/<int:index>")
-def remove(index):
-    del toDo[index]
-    return redirect(url_for('home'))
+    def done(self, index):
+        self.toDo[index]['done'] = not self.toDo[index]['done']
+        return redirect(url_for('home'))
+
+    def remove(self, index):
+        del self.toDo[index]
+        return redirect(url_for('home'))
+
+    def run(self):
+        self.app.run(debug=True)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app = ToDoListApp()
+    app.run()
